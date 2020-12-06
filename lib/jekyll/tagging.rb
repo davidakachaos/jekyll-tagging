@@ -47,6 +47,9 @@ module Jekyll
 
     def new_tag(tag, posts)
       self.class.types.each { |type|
+        if site.config["tag_disable_tag_pages"] and type == :page
+          next
+        end
         if layout = site.config["tag_#{type}_layout"]
           data = { 'layout' => layout, 'posts' => posts.sort.reverse!, 'tag' => tag }
           data.merge!(site.config["tag_#{type}_data"] || {})
@@ -119,9 +122,9 @@ module Jekyll
 
     include Helpers
 
-    def tag_cloud(site)
+    def tag_cloud(page)
       active_tag_data.map { |tag, set|
-        tag_link(tag, tag_url(tag), :class => "set-#{set}")
+        tag_link(tag, tag_url(tag, page['lang']), :class => "set-#{set}")
       }.join(' ')
     end
 
@@ -130,8 +133,8 @@ module Jekyll
       %Q{<a href="#{url}"#{html_opts}>#{tag}</a>}
     end
 
-    def tag_url(tag, type = :page, site = Tagger.site)
-      url = File.join('', site.config["baseurl"].to_s, site.config["tag_#{type}_dir"], ERB::Util.u(jekyll_tagging_slug(tag)))
+    def tag_url(tag, lang, type = :page, site = Tagger.site)
+      url = File.join('', site.config["baseurl"].to_s, site.config["lang"] == lang ? '' : lang, site.config["tag_#{type}_dir"], ERB::Util.u(jekyll_tagging_slug(tag)))
       site.permalink_style == :pretty || site.config['tag_permalink_style'] == 'pretty' ? url << '/' : url << '.html'
     end
 
